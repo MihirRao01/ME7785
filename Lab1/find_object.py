@@ -13,6 +13,8 @@ def click_event(event,x,y,flags,param):
         # hsv = cv2.cvtColor(event, cv2.COLOR_BGR2HSV)
         hsv_frame = param["hsv_frame"]
         selected_hsv = hsv_frame[y, x]
+        print(f"Selected Pixel Coordinates: {x,y}")
+        print(f"Clicked HSV: {selected_hsv}")
 
 # driver function 
 def main():
@@ -28,7 +30,7 @@ def main():
                 
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.setMouseCallback('Detected Object',click_event,{"hsv_frame":hsv_frame})
-        print(f"Clicked HSV: {selected_hsv}")
+       
         
         if selected_hsv is not None:
             #define a range around the selected hsv value
