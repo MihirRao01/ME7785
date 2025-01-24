@@ -12,7 +12,7 @@ def click_event(event, x, y, flags, param):
         # Get the HSV value of the clicked pixel
         hsv_frame = param["hsv_frame"]
         selected_hsv = hsv_frame[y, x]
-        print(f"Selected Pixel Coordinates: {x,y}")
+        # print(f"Selected Pixel Coordinates: {x,y}")
         print(f"Clicked HSV: {selected_hsv}")
 
 # Driver function 
@@ -69,6 +69,7 @@ def main():
                 # Draw bounding box around the detected object
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(frame, "Detected Object", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                 print(f"Center Pixel Coordinates: {(x+w)/2,(y+h)/2}")
 
             # Display the mask for debugging purposes
             cv2.imshow('Mask', mask)
