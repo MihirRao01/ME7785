@@ -12,6 +12,7 @@ def click_event(event, x, y, flags, param):
         # Get the HSV value of the clicked pixel
         hsv_frame = param["hsv_frame"]
         selected_hsv = hsv_frame[y, x]
+        print(f"Selected Pixel Coordinates: {x,y}")
         print(f"Clicked HSV: {selected_hsv}")
 
 # Driver function 
@@ -54,7 +55,7 @@ def main():
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             # Filter out small objects by contour area
-            min_contour_area = 500  # Minimum area of contour to be considered as an object
+            min_contour_area =750  # Minimum area of contour to be considered as an object
             filtered_contours = [c for c in contours if cv2.contourArea(c) > min_contour_area]
 
             # If no contours are found, we skip the drawing part
