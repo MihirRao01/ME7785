@@ -29,8 +29,9 @@ def main():
             break
                 
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
         cv2.setMouseCallback('Detected Object', click_event, {"hsv_frame": hsv_frame})
-        
+
         if selected_hsv is not None:
             # Extract the Value (brightness) component from the selected HSV value
             selected_value = selected_hsv[2]
@@ -69,7 +70,7 @@ def main():
                 # Draw bounding box around the detected object
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(frame, "Detected Object", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                 print(f"Center Pixel Coordinates: {(x+w)/2,(y+h)/2}")
+                print(f"Center Pixel Coordinates: {(x+w)/2,(y+h)/2}")
 
             # Display the mask for debugging purposes
             cv2.imshow('Mask', mask)
