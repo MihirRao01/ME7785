@@ -1,26 +1,26 @@
 import numpy as np
 import cv2
 
-# Global variables for HSV range
+# Global variable for HSV range
 lower_hsv = None
 upper_hsv = None
 selected_hsv = None  
 
-def click_event(event,x,y,flags,param):
+def click_event(event, x, y, flags, param):
     global selected_hsv
     if event == cv2.EVENT_LBUTTONDOWN:
-        # get the hsv values of the pixel
-        # hsv = cv2.cvtColor(event, cv2.COLOR_BGR2HSV)
+        # Get the HSV value of the clicked pixel
         hsv_frame = param["hsv_frame"]
         selected_hsv = hsv_frame[y, x]
-        print(f"Selected Pixel Coordinates: {x,y}")
+        # print(f"Selected Pixel Coordinates: {x,y}")
         print(f"Clicked HSV: {selected_hsv}")
 
-# driver function 
+# Driver function 
 def main():
     # Initialize video capture
     cap = cv2.VideoCapture(0)
     cv2.namedWindow('Detected Object')
+    
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
@@ -29,39 +29,50 @@ def main():
             break
                 
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        cv2.setMouseCallback('Detected Object',click_event,{"hsv_frame":hsv_frame})
-       
-        
+
+        cv2.setMouseCallback('Detected Object', click_event, {"hsv_frame": hsv_frame})
+
         if selected_hsv is not None:
-            #define a range around the selected hsv value
-           # Detect white objects
-            if selected_hsv[1] < 50 and selected_hsv[2] > 200:  # Low Saturation, High Value
-                lower_hsv = np.array([0, 0, 200])  # Focus on high brightness
-                upper_hsv = np.array([179, 50, 255])  # Allow full Hue range, low Saturation
-            else:
-                # Use normal thresholds for colored objects
-                tolerance = np.array([10, 50, 50])
-                lower_hsv = np.maximum(selected_hsv - tolerance, [0, 0, 0])
-                upper_hsv = np.minimum(selected_hsv + tolerance, [179, 255, 255])
+            # Extract the Value (brightness) component from the selected HSV value
+            selected_value = selected_hsv[2]
+
+            # Determine if the object is dark or bright
+            if selected_value < 100:  # Dark object (like black phone)
+                tolerance = np.array([10, 50, 100])  # Lower tolerance for dark objects
+            else:  # Bright object (like tennis ball)
+                tolerance = np.array([10, 50, 50])  # Higher tolerance for bright objects
             
-            # Create a mask for the hsv color selected
+            # Define HSV range with tolerance
+            lower_hsv = np.maximum(selected_hsv - tolerance, [0, 0, 0])
+            upper_hsv = np.minimum(selected_hsv + tolerance, [179, 255, 255])
+            
+            # Create a mask for the HSV color selected
             mask = cv2.inRange(hsv_frame, lower_hsv, upper_hsv)
 
-            # Apply a bitwise AND to keep only the selected parts of the image
-            cv2.bitwise_and(frame, frame, mask=mask)
+            # Apply the mask to the frame (keep only the selected object)
+            result = cv2.bitwise_and(frame, frame, mask=mask)
 
             # Find contours in the mask
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # Draw bounding boxes around detected objects
-            for contour in contours:
-                # Filter small contours based on area
-                if cv2.contourArea(contour) > 500:
-                    x, y, w, h = cv2.boundingRect(contour)
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                    cv2.putText(frame, "Detected Object", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        
-            # Display the mask for debugging
+            # Filter out small objects by contour area
+            min_contour_area =750  # Minimum area of contour to be considered as an object
+            filtered_contours = [c for c in contours if cv2.contourArea(c) > min_contour_area]
+
+            # If no contours are found, we skip the drawing part
+            if len(filtered_contours) > 0:
+                # Sort contours based on area to pick the largest one (potentially the clicked object)
+                largest_contour = max(filtered_contours, key=cv2.contourArea)
+
+                # Get bounding box around the largest contour
+                x, y, w, h = cv2.boundingRect(largest_contour)
+
+                # Draw bounding box around the detected object
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(frame, "Detected Object", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                print(f"Center Pixel Coordinates: {(x+w)/2,(y+h)/2}")
+
+            # Display the mask for debugging purposes
             cv2.imshow('Mask', mask)
 
         # Display the original frame with bounding boxes
